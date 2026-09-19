@@ -1,34 +1,37 @@
-from pydantic import BaseModel, field_validator
+from sqlmodel import SQLModel, Field
+from typing import Optional
+from datetime import datetime
 
 
-class Pincode(BaseModel):
-    pincode: str
-#pincode must be exactly 6 digits and should only contain numbers.
-    @field_validator("pincode")
-    @classmethod
-    def validate_pincode(cls, value):
-        if not value.isdigit() or len(value) != 6:
-            raise ValueError("Pincode must be a 6-digit number.")
-        return value
+class Review(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
 
-    
-class LocationResponse(BaseModel):
-    pincode: str
-    city: str
-    state: str
-    country: str   
+    play_name: str
+    reviewer_name: str
+    comment: str
+    rating: int = Field(ge=1, le=5)
+
+    created_at: datetime = Field(default_factory=datetime.now)
 
 
-class BulkRequest(BaseModel):
-    pincodes: list[str]     
-    @field_validator("pincodes")
-    @classmethod
-    def validate_pincodes(cls, value):
-        for pincode in value:
-            if not pincode.isdigit() or len(pincode) != 6:
-               raise ValueError(f"Pincode {pincode} must be a 6-digit number.")
-            if len(value) > 100:
-                raise ValueError("You can only request up to 100 pincodes at a time.")
-            if len(value) == 0:
-                raise ValueError("You must provide at least one pincode.")
-        return value         
+class ReviewCreate(SQLModel):
+    play_name: str
+    reviewer_name: str
+    rating: int = Field(ge=1, le=5)
+    comment: str
+
+
+class ReviewRead(SQLModel):
+    id: int
+    play_name: str
+    reviewer_name: str
+    rating: int
+    comment: str
+    created_at: datetime
+
+
+class ReviewUpdate(SQLModel):
+    play_name: Optional[str] = None
+    reviewer_name: Optional[str] = None
+    comment: Optional[str] = None
+    rating: Optional[int] = Field(default=None, ge=1, le=5)
