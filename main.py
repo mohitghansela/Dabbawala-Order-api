@@ -1,24 +1,27 @@
-from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from database import create_tables, get_session
-from routes.reviews import router as reviews_router
+from contextlib import asynccontextmanager 
+from database import create_tables
+from routes.orders import router as orders_router
+from routes.stats import router as stats_router
+from typing import Optional
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Lifespan context manager for FastAPI application."""
-    # Create database tables on startup
     create_tables()
+    print("Application startup")
     yield
-    # Perform any cleanup tasks here if needed
-    print("Application shutdown. Cleanup tasks can be performed here.")
+    print("Application shutdown")
 
 
-app = FastAPI(
-    title="Rangmanch Reviews API",
-    description="This is a simple API for Rangmanch Reviews",
-    lifespan=lifespan
-)
 
-app.include_router(reviews_router)
-@app.get("/")
-async def root():
-    return {"message": "Welcome to the Rangmanch Reviews API!"} 
+app = FastAPI(title = "Dabbewala",
+              description = "Dabbewala is a food delivery service that connects customers with local restaurants and food providers.",
+              version = "1",
+              lifespan=lifespan,)  
+
+app.include_router(orders_router)
+app.include_router(stats_router)    
+
+@app.get("/health",tags=["Health"])
+def health_check():
+    return {"status": "ok"}

@@ -1,37 +1,59 @@
-from sqlmodel import SQLModel, Field
-from typing import Optional
+from enum import Enum
 from datetime import datetime
+from typing import Optional
+
+from sqlmodel import SQLModel, Field
 
 
-class Review(SQLModel, table=True):
+# Order Status Enum
+class OrderStatus(str, Enum):
+    preparing = "preparing"
+    out_for_delivery = "out_for_delivery"
+    delivered = "delivered"
+
+
+# Database Model
+class Order(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
 
-    play_name: str
-    reviewer_name: str
-    comment: str
-    rating: int = Field(ge=1, le=5)
+    customer_name: str
+    customer_address: str
+    order_items: str
 
-    created_at: datetime = Field(default_factory=datetime.now)
+    order_status: OrderStatus = Field(
+        default=OrderStatus.preparing
+    )
 
+    created_at: datetime = Field(
+        default_factory=datetime.now
+    )
 
-class ReviewCreate(SQLModel):
-    play_name: str
-    reviewer_name: str
-    rating: int = Field(ge=1, le=5)
-    comment: str
-
-
-class ReviewRead(SQLModel):
-    id: int
-    play_name: str
-    reviewer_name: str
-    rating: int
-    comment: str
-    created_at: datetime
+    updated_at: datetime = Field(
+        default_factory=datetime.now,
+        sa_column_kwargs={"onupdate": datetime.now}
+    )
 
 
-class ReviewUpdate(SQLModel):
-    play_name: Optional[str] = None
-    reviewer_name: Optional[str] = None
-    comment: Optional[str] = None
-    rating: Optional[int] = Field(default=None, ge=1, le=5)
+# Schema for Creating Order
+class OrderCreate(SQLModel):
+    customer_name: str
+    customer_address: str
+    order_items: str
+
+
+# Schema for Updating Order
+class OrderUpdate(SQLModel):
+    customer_name: Optional[str] = None
+    customer_address: Optional[str] = None
+    order_items: Optional[str] = None
+    order_status: Optional[OrderStatus] = None
+
+
+# Schema for Status Log
+class StatusLog(SQLModel):
+    order_id: int
+    order_status: OrderStatus
+    new_status: OrderStatus
+    changed_at: datetime = Field(
+        default_factory=datetime.now
+    )
